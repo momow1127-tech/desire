@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "astrbot-desire-system": {
+      "command": "python",
+      "args": [
+        "D:\\path\\to\\AstrBot-Desire-System\\mcp_server.py"
+      ],
+      "env": {
+        "DESIRE_DB_FILE": "D:\\path\\to\\AstrBot-Desire-System\\desire_system.db"
+      }
+    }
+  }
+}

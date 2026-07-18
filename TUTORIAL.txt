@@ -1,0 +1,73 @@
+AstrBot Desire System 2.0 使用说明
+
+安装：
+1. 将本仓库放入 AstrBot 的插件目录。
+2. 重启 AstrBot 或在插件管理页重新加载插件。
+3. 插件会自动创建 desire_system.db。
+
+常用 QQ 指令：
+/desire status                 查看九维驱动条
+/desire event <事件类型>        触发事件
+/desire tick                   手动运行一次心跳
+/desire thoughts               查看念头池
+/desire resolve <念头内容>      解决一个念头
+
+常用事件类型：
+wife_message
+wife_silent
+task_done
+penpal_message
+diary_written
+fight
+reconcile
+intimacy_done
+heavy_work
+rest
+discovery
+happy_moment
+creative_done
+
+LLM 工具：
+desire_status
+desire_event
+desire_tick
+desire_resolve_thought
+
+说明：
+- 这是 AstrBot 适配版。
+- 核心逻辑放在 desire/ 目录，AstrBot 和 Rikkahub MCP 适配共用同一套核心逻辑。
+- 插件会在 LLM 请求时注入简短 desire_state，包含九维驱动、念头和行为建议。
+- 欲望系统只提供内部状态和行为建议，不会强制执行行为。
+
+Rikkahub MCP：
+1. 使用 `mcp_server.py` 作为 stdio MCP Server。
+2. 可直接参考 `rikkahub_mcp_config.json`。
+3. 在 Rikkahub 的 MCP Server 配置里导入或手动填写：
+   - command: python
+   - args: D:\path\to\AstrBot-Desire-System\mcp_server.py
+4. 可选环境变量：
+   - DESIRE_DB_FILE：指定 SQLite 状态文件路径。
+
+Rikkahub 可用工具：
+- desire_status
+- desire_event
+- desire_tick
+- desire_resolve_thought
+
+Kelivo MCP：
+1. Kelivo 已内置 MCP 客户端，不需要额外安装插件。
+2. 进入：设置 -> 助手 -> 选择助手 -> MCP。
+3. 如果欲望系统部署在公网服务器上，选择远程/SSE/HTTP 方式。
+4. 填写你的 MCP 地址，例如：
+   - https://your-domain.example.com/mcp
+5. 如果服务器设置了 DESIRE_MCP_TOKEN，就在鉴权信息里填写：
+   - Authorization: Bearer your-token
+
+远程服务启动：
+python mcp_http_server.py
+
+可用环境变量：
+- DESIRE_MCP_HOST：监听地址，默认 0.0.0.0
+- DESIRE_MCP_PORT：监听端口，默认 8765
+- DESIRE_MCP_TOKEN：可选鉴权 token
+- DESIRE_DB_FILE：可选 SQLite 状态文件路径

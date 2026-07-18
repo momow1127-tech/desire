@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AstrBot Desire System Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #eee;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2em;
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .card h2 {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            color: #00d2ff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card h2 .icon {
+            font-size: 1.5em;
+        }
+        .drives-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+        .drive-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+        .drive-name {
+            font-size: 0.8em;
+            color: #aaa;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        .drive-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .drive-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .drive-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        .thoughts-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .thought-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            border-left: 3px solid #3a7bd5;
+        }
+        .thought-item.obsession {
+            border-left-color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+        }
+        .thought-text {
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+        .thought-meta {
+            font-size: 0.75em;
+            color: #888;
+        }
+        .hints-list {
+            list-style: none;
+        }
+        .hint-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .hint-action {
+            font-weight: bold;
+        }
+        .hint-priority {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            text-transform: uppercase;
+        }
+        .hint-priority.high {
+            background: #ff6b6b;
+            color: white;
+        }
+        .hint-priority.medium {
+            background: #ffd93d;
+            color: #333;
+        }
+        .hint-priority.low {
+            background: #6bcb77;
+            color: white;
+        }
+        .monologue-box {
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            font-style: italic;
+            font-size: 1.1em;
+            line-height: 1.6;
+            text-align: center;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .gates-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        .gate-item {
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .gate-status {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.75em;
+        }
+        .gate-status.on {
+            background: #6bcb77;
+            color: white;
+        }
+        .gate-status.off {
+            background: #ff6b6b;
+            color: white;
+        }
+        .stats-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .stat-item {
+            flex: 1;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #00d2ff;
+        }
+        .stat-label {
+            font-size: 0.8em;
+            color: #888;
+            margin-top: 5px;
+        }
+        .refresh-info {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 0.9em;
+        }
+        .error-message {
+            text-align: center;
+            padding: 40px;
+            color: #ff6b6b;
+        }
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            .drives-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AstrBot Desire System Dashboard</h1>
+        
+        <div class="stats-row">
+            <div class="stat-item">
+                <div class="stat-value" id="tick-count">--</div>
+                <div class="stat-label">Tick Count</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="last-tick">--</div>
+                <div class="stat-label">Last Tick</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="next-interval">--</div>
+                <div class="stat-label">Next Interval (s)</div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h2><span class="icon">📊</span> Nine-Dimensional Drives</h2>
+                <div class="drives-grid" id="drives-container">
+                    <!-- Drives will be populated here -->
+                </div>
+            </div>
+
+            <div class="card">
+                <h2><span class="icon">💭</span> Monologue</h2>
+                <div class="monologue-box" id="monologue">
+                    Loading...
+                </div>
+            </div>
+
+            <div class="card">
+                <h2><span class="icon">💡</span> Action Hints</h2>
+                <ul class="hints-list" id="hints-container">
+                    <!-- Hints will be populated here -->
+                </ul>
+            </div>
+
+            <div class="card">
+                <h2><span class="icon">🧠</span> Thought Pool</h2>
+                <div class="thoughts-list" id="thoughts-container">
+                    <!-- Thoughts will be populated here -->
+                </div>
+            </div>
+
+            <div class="card">
+                <h2><span class="icon">⚙️</span> Gate Status</h2>
+                <div class="gates-grid" id="gates-container">
+                    <!-- Gates will be populated here -->
+                </div>
+            </div>
+
+            <div class="card">
+                <h2><span class="icon">📈</span> Baselines</h2>
+                <div class="drives-grid" id="baselines-container">
+                    <!-- Baselines will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <div class="refresh-info">
+            Auto-refresh every 10 seconds | Last update: <span id="last-update">--</span>
+        </div>
+    </div>
+
+    <script>
+        const DRIVE_COLORS = {
+            attachment: '#ff6b6b',
+            curiosity: '#ffd93d',
+            reflection: '#6bcb77',
+            duty: '#4d96ff',
+            social: '#9b59b6',
+            fatigue: '#95a5a6',
+            intimacy: '#e74c3c',
+            stress: '#e67e22',
+            joy: '#f1c40f'
+        };
+
+        const DRIVE_LABELS = {
+            attachment: '依恋',
+            curiosity: '好奇',
+            reflection: '内省',
+            duty: '责任',
+            social: '社交',
+            fatigue: '疲劳',
+            intimacy: '亲密',
+            stress: '压力',
+            joy: '快乐'
+        };
+
+        let statusData = null;
+
+        async function fetchStatus() {
+            try {
+                const response = await fetch('/health');
+                if (!response.ok) throw new Error('Health check failed');
+                
+                // Get desire status via MCP
+                const mcpResponse = await fetch('/mcp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        jsonrpc: '2.0',
+                        id: 1,
+                        method: 'tools/call',
+                        params: {
+                            name: 'desire_status',
+                            arguments: {}
+                        }
+                    })
+                });
+                
+                const mcpData = await mcpResponse.json();
+                if (mcpData.result && mcpData.result.content) {
+                    statusData = JSON.parse(mcpData.result.content[0].text);
+                    updateDashboard();
+                }
+            } catch (error) {
+                console.error('Error fetching status:', error);
+                document.getElementById('monologue').innerHTML = 
+                    `<div class="error-message">Error loading data: ${error.message}</div>`;
+            }
+        }
+
+        function updateDashboard() {
+            if (!statusData) return;
+
+            // Update stats
+            document.getElementById('tick-count').textContent = statusData.tick_count || 0;
+            document.getElementById('last-tick').textContent = 
+                statusData.last_tick ? new Date(statusData.last_tick).toLocaleTimeString() : '--';
+            document.getElementById('next-interval').textContent = statusData.next_interval || '--';
+
+            // Update drives
+            const drivesContainer = document.getElementById('drives-container');
+            drivesContainer.innerHTML = '';
+            for (const [drive, value] of Object.entries(statusData.drives || {})) {
+                const color = DRIVE_COLORS[drive] || '#3a7bd5';
+                const label = DRIVE_LABELS[drive] || drive;
+                drivesContainer.innerHTML += `
+                    <div class="drive-item">
+                        <div class="drive-name">${label}</div>
+                        <div class="drive-value" style="color: ${color}">${Math.round(value)}</div>
+                        <div class="drive-bar">
+                            <div class="drive-bar-fill" style="width: ${value}%; background: ${color}"></div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Update baselines
+            const baselinesContainer = document.getElementById('baselines-container');
+            baselinesContainer.innerHTML = '';
+            for (const [drive, value] of Object.entries(statusData.baselines || {})) {
+                const color = DRIVE_COLORS[drive] || '#3a7bd5';
+                const label = DRIVE_LABELS[drive] || drive;
+                baselinesContainer.innerHTML += `
+                    <div class="drive-item">
+                        <div class="drive-name">${label}</div>
+                        <div class="drive-value" style="color: ${color}">${Math.round(value)}</div>
+                        <div class="drive-bar">
+                            <div class="drive-bar-fill" style="width: ${value}%; background: ${color}"></div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Update thoughts
+            const thoughtsContainer = document.getElementById('thoughts-container');
+            thoughtsContainer.innerHTML = '';
+            (statusData.thoughts || []).forEach(thought => {
+                const isObsession = thought.obsession;
+                thoughtsContainer.innerHTML += `
+                    <div class="thought-item ${isObsession ? 'obsession' : ''}">
+                        <div class="thought-text">${thought.content}</div>
+                        <div class="thought-meta">
+                            ${thought.source} | Count: ${thought.count} | 
+                            ${isObsession ? '🔥 Obsession' : '💭 Flash'}
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Update action hints
+            const hintsContainer = document.getElementById('hints-container');
+            hintsContainer.innerHTML = '';
+            (statusData.action_hints || []).forEach(hint => {
+                hintsContainer.innerHTML += `
+                    <li class="hint-item">
+                        <span class="hint-action">${hint.action}</span>
+                        <span class="hint-priority ${hint.priority}">${hint.priority}</span>
+                    </li>
+                `;
+            });
+            if ((statusData.action_hints || []).length === 0) {
+                hintsContainer.innerHTML = '<li class="hint-item"><span style="color: #888">No active hints</span></li>';
+            }
+
+            // Update monologue
+            document.getElementById('monologue').textContent = 
+                statusData.monologue || 'No monologue available';
+
+            // Update last update time
+            document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
+        }
+
+        // Initial fetch
+        fetchStatus();
+
+        // Auto-refresh every 10 seconds
+        setInterval(fetchStatus, 10000);
+    </script>
+</body>
+</html>
